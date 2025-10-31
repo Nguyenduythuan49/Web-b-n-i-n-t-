@@ -18,23 +18,22 @@ if($page=='' || $page==1){
     
 ?>
 <h3>Sản phẩm mới nhất</h3>
-                <ul class="product_list">
+                <div class ="row">
                     <?php
                     while($row=mysqli_fetch_array($query_pro)){
                     ?>
-                    <li>
+                    <div class="col-md-4 col-sm-6 col-xs-12 product_list">
                         <a href="index.php?quanly=sanpham&id=<?php echo $row['id_sanpham'] ?>">
-                        <img src="admincp/modules/quanlysp/uploads/<?php echo $row['hinhanh'] ?>">
+                        <img class="img-responsive" src="admincp/modules/quanlysp/uploads/<?php echo $row['hinhanh'] ?>">
                         <p class="tittle_product">Tên sản phẩm: <?php echo $row['tensp'] ?></p>
                         <p class="price_product">Giá : <?php echo number_format($row['giasp'],0,',','.')." VNĐ" ?></p>
                         <p style="text-align:center;color:#d1d1d1"><?php echo $row['tendanhmuc'] ?></p>
                         </a>
-                    </li>
+                    </div>
                     <?php
                     }
                     ?>
-
-                </ul>
+                </div>
                 <div style ="clear:both;"></div>
                 <style type="text/css">
                     ul.list_Trang{

@@ -1,6 +1,10 @@
- <div id="main">
+<div id="main">
+    <div class="row">
+    <!-----large--->
+    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
            <?php include("sidebar/sidebar.php"); ?>
-           
+           </div>
+           <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
             <div class="maincontent">
                 <?php
                 if(isset($_GET['quanly'])){
@@ -30,10 +34,17 @@
                      include("main/camon.php");
                 }elseif($tam=='thaydoimatkhau'){    
                      include("main/thaydoimatkhau.php");
+                }elseif($tam=='vanchuyen'){
+                    include("main/vanchuyen.php");
+                }elseif($tam=='thongtinthanhtoan'){
+                    include("main/thongtinthanhtoan.php");
+                }elseif($tam=='donhangdadat'){
+                    include("main/donhangdadat.php");
                 }else{
                     include("main/index.php");
                 }
                 ?>
         </div>
-       
+       </div>
+       </div>
     </div>

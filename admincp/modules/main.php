@@ -22,6 +22,8 @@
                     include("modules/quanlydonhang/lietke.php");
                 }elseif($tam=='donhang'&& $query=='xemdonhang'){
                     include("modules/quanlydonhang/xemdonhang.php");
+                }elseif($tam=='quanlyweb'&& $query=='capnhat'){
+                    include("modules/thongtinweb/quanly.php");
                 }else{
                     include("modules/dashboard.php");
                 }

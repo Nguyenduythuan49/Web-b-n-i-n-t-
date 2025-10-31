@@ -12,18 +12,18 @@
     
 ?>
 <h3>Danh mục sản phẩm : <?php echo $row_tittle['tendanhmuc'] ?></h3>
-                <ul class="product_list">
+                <div class ="row">
                     <?php
-                    while($row_pro=mysqli_fetch_array($query_pro)){
+                    while($row=mysqli_fetch_array($query_pro)){
                     ?>
-                    <li>
-                        <a href="index.php?quanly=sanpham&id=<?php echo $row_pro['id_sanpham'] ?>">
-                        <img src="admincp/modules/quanlysp/uploads/<?php echo $row_pro['hinhanh'] ?>">
-                        <p class="tittle_product">Tên sản phẩm: <?php echo $row_pro['tensp'] ?></p>
-                        <p class="price_product">Giá : <?php echo number_format($row_pro['giasp'],0,',','.')." VNĐ" ?></p>
+                    <div class="col-md-4 col-sm-6 col-xs-12 product_list">
+                        <a href="index.php?quanly=sanpham&id=<?php echo $row['id_sanpham'] ?>">
+                        <img class="img-responsive" src="admincp/modules/quanlysp/uploads/<?php echo $row['hinhanh'] ?>">
+                        <p class="tittle_product">Tên sản phẩm: <?php echo $row['tensp'] ?></p>
+                        <p class="price_product">Giá : <?php echo number_format($row['giasp'],0,',','.')." VNĐ" ?></p>
                         </a>
-                    </li>
+                    </div>
                     <?php
                     }
                     ?>
-                </ul>
+                </div>

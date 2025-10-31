@@ -15,6 +15,16 @@ if(isset($_SESSION['cart'])){
     
 }
 ?>
+<div class="container">	
+<div class="arrow-steps clearfix">
+          <div class="step current"> <span><a href="index.php?quanly=giohang">Giỏ hàng</a></span> </div>
+          <div class="step "> <span><a href="index.php?quanly=vanchuyen">Vận chuyển</a></span> </div>
+          <div class="step "> <span><a href="index.php?quanly=thongtinthanhtoan">Thanh toán</a></span> </div>
+          <div class="step "> <span><a href="index.php?quanly=donhangdadat">Lịch sử đơn hàng</a></span> </div>
+			</div>
+	</div>
+</div>
+</div>
 <table style="width:100% ;text-align:center;border-collapse:collapse;" border="1">
   <tr>
     <th>Id</th>
@@ -63,7 +73,7 @@ if(isset($_SESSION['cart'])){
     <?php
       if(isset($_SESSION['dangky'])){
     ?>
-    <P><a href="pages/main/thanhtoan.php"> Đặt Hàng</a></P>
+    <P><a href="index.php?quanly=vanchuyen"> Hình thức vận chuyển</a></P>
     <?php
       }else{
         ?>

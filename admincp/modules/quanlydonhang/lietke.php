@@ -26,7 +26,7 @@
     <td><?php echo $row['tenkhachhang'] ?></td>
     <td><?php echo $row['diachi'] ?></td>
     <td><?php echo $row['email'] ?></td>
-    <td><?php echo $row['dienthoai'] ?></td>
+    <td><?php echo $row['sodienthoai'] ?></td>
     <td><?php if($row['cart_status']==1){
         echo '<a href="modules/quanlydonhang/xuly.php?code='.$row['code_cart'].'">Đơn hàng mới</a>';
     }else{

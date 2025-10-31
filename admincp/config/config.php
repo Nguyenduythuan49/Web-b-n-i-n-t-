@@ -1,7 +1,7 @@
 <?php 
-$conn = "localhost";
+$conn = "localhost:3307";//Lỗi do thiếu cổng 3307 -> đúng là localhost:cổng
 $username   = "root";
-$password   = "";
+$password   = "0702479538";
 $dbname     = "web_phukien";
 
 // Tạo kết nối
@@ -13,3 +13,5 @@ if ($conn->connect_error) {
 }
 //echo "Kết nối thành công";
 ?>
+
+

@@ -22,6 +22,24 @@
     </div>
     </form>
 </div>
+<div class="clear"></div>
+<!--END tab content-->
+<div class="tabs">
+  <ul id="tabs-nav">
+    <li><a href="#tab1">Thông Số Kỹ Thuật</a></li>
+    <li><a href="#tab3">Hình ảnh sản phẩm</a></li>
+
+  </ul> <!-- END tabs-nav -->
+  <div id="tabs-content">
+    <div id="tab1" class="tab-content">
+      <?php echo $row_chitiet['tomtat'] ?>
+    </div>
+    <div id="tab3" class="tab-content">
+    <div class="hinhanh_sanpham">
+            <img width="50%"src="admincp/modules/quanlysp/uploads/<?php echo $row_chitiet['hinhanh'] ?>">
+    </div>
+  </div> <!-- END tabs-content -->
+</div> <!-- END tabs -->
 <?php
            }
 ?>
