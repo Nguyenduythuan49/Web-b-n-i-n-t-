@@ -40,10 +40,15 @@
                     include("main/thongtinthanhtoan.php");
                 }elseif($tam=='donhangdadat'){
                     include("main/donhangdadat.php");
+                }elseif($tam=='lichsudonhang'){
+                    include("main/lichsudonhang.php");
+                }elseif($tam=='xemdonhang'){
+                    include("main/xemdonhang.php");
                 }else{
                     include("main/index.php");
                 }
                 ?>
+                
         </div>
        </div>
        </div>

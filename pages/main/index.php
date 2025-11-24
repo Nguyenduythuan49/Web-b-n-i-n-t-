@@ -12,7 +12,7 @@ if($page=='' || $page==1){
 
      $sql_pro = "SELECT * FROM  tbl_sanpham,tbl_danhmuc
             WHERE tbl_sanpham.id_danhmuc = tbl_danhmuc.id_danhmuc
-            ORDER BY tbl_sanpham.id_sanpham DESC LIMIT $begin,6";
+            ORDER BY tbl_sanpham.id_sanpham DESC LIMIT $begin,8";
 
      $query_pro=mysqli_query($conn,$sql_pro);
     
@@ -22,7 +22,7 @@ if($page=='' || $page==1){
                     <?php
                     while($row=mysqli_fetch_array($query_pro)){
                     ?>
-                    <div class="col-md-4 col-sm-6 col-xs-12 product_list">
+                   <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 product_list">
                         <a href="index.php?quanly=sanpham&id=<?php echo $row['id_sanpham'] ?>">
                         <img class="img-responsive" src="admincp/modules/quanlysp/uploads/<?php echo $row['hinhanh'] ?>">
                         <p class="tittle_product">Tên sản phẩm: <?php echo $row['tensp'] ?></p>

@@ -15,7 +15,7 @@
     }
 ?>
 <body>
-    <h3 class="tittle_admin">Welcome to Admincp</h3>
+    <h3 class="tittle_admin">Welcome to Di Thun admin</h3>
     <div class="wrapper">
          <?php
          include("config/config.php");
