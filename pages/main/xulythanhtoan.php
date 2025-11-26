@@ -12,7 +12,7 @@
     $id_khachhang = $_SESSION['id_khachhang'];
     $code_order = rand(0,9999);
     
-    // Kiểm tra payment tồn tại không để tránh lỗi Warning
+    // Kiểm tra payment để tránh lỗi undefined
     $cart_payment = isset($_POST['payment']) ? $_POST['payment'] : '';
 
     // 2. LẤY THÔNG TIN VẬN CHUYỂN
@@ -38,7 +38,7 @@
     // --- TRƯỜNG HỢP 1: THANH TOÁN TIỀN MẶT / CHUYỂN KHOẢN ---
     if($cart_payment == 'tienmat' || $cart_payment == 'chuyenkhoan'){
         
-        // Dùng NOW() để lưu thời gian thực (Ngày + Giờ) vào cột DATETIME
+        // Dùng NOW() cho cột DATETIME
         $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
         VALUES('$id_khachhang','$code_order',1,NOW(),'$cart_payment','$id_shipping')";
         
@@ -121,7 +121,7 @@
         if(isset($_POST['redirect'])){
             $_SESSION['code_cart'] = $code_order;
             
-            // Insert cho VNPAY cũng dùng NOW()
+            // Dùng NOW() cho cột DATETIME
             $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
             VALUES('$id_khachhang','$code_order','1',NOW(),'$cart_payment','$id_shipping')";
             
