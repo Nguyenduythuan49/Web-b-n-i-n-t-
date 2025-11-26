@@ -37,11 +37,9 @@
     // --- TRƯỜNG HỢP 1: THANH TOÁN TIỀN MẶT / CHUYỂN KHOẢN ---
     if($cart_payment == 'tienmat' || $cart_payment == 'chuyenkhoan'){
         
-        // SỬA LỖI Ở ĐÂY:
-        // Tôi đã XÓA cột 'cart_date' và giá trị NOW() đi.
-        // Database sẽ tự động điền thời gian hiện tại vào nhờ current_timestamp()
-        $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_payment, cart_shipping) 
-        VALUES('$id_khachhang','$code_order',1,'$cart_payment','$id_shipping')";
+        // Đã thêm lại: cart_date và NOW()
+        $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
+        VALUES('$id_khachhang','$code_order',1,NOW(),'$cart_payment','$id_shipping')";
         
         $cart_query = mysqli_query($conn, $insert_cart);
 
@@ -122,9 +120,9 @@
         if(isset($_POST['redirect'])){
             $_SESSION['code_cart'] = $code_order;
             
-            
-            $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_payment, cart_shipping) 
-            VALUES('$id_khachhang','$code_order',1,'$cart_payment','$id_shipping')";
+            // Đã thêm lại: cart_date và NOW()
+            $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
+            VALUES('$id_khachhang','$code_order','1',NOW(),'$cart_payment','$id_shipping')";
             
             $cart_query = mysqli_query($conn, $insert_cart);
 
