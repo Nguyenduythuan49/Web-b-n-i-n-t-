@@ -11,12 +11,10 @@
 
     $id_khachhang = $_SESSION['id_khachhang'];
     $code_order = rand(0,9999);
-    $cart_payment = $_POST['payment'];
     
-    // --- KHẮC PHỤC LỖI OUT OF RANGE ---
-    // Chỉ lấy Năm-Tháng-Ngày để phù hợp với cột DATE trong database
-    $cart_date = date('Y-m-d');
-    
+    // Kiểm tra payment tồn tại không để tránh lỗi Warning
+    $cart_payment = isset($_POST['payment']) ? $_POST['payment'] : '';
+
     // 2. LẤY THÔNG TIN VẬN CHUYỂN
     $id_dangky = $_SESSION['id_khachhang'];
     $sql_get_vanchuyen = mysqli_query($conn, "SELECT * FROM tbl_shipping WHERE id_dangky='$id_dangky' LIMIT 1");
@@ -40,19 +38,21 @@
     // --- TRƯỜNG HỢP 1: THANH TOÁN TIỀN MẶT / CHUYỂN KHOẢN ---
     if($cart_payment == 'tienmat' || $cart_payment == 'chuyenkhoan'){
         
-        // Thay NOW() bằng biến $cart_date đã định dạng chuẩn
+        // Dùng NOW() để lưu thời gian thực (Ngày + Giờ) vào cột DATETIME
         $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
-        VALUES('$id_khachhang','$code_order',1,'$cart_date','$cart_payment','$id_shipping')";
+        VALUES('$id_khachhang','$code_order',1,NOW(),'$cart_payment','$id_shipping')";
         
         $cart_query = mysqli_query($conn, $insert_cart);
 
         if($cart_query){
-            foreach($_SESSION['cart'] as $key => $value){
-                $id_sanpham = $value['id'];
-                $soluong = $value['soluong'];
-                $insert_order_details = "INSERT INTO tbl_cart_details(id_sanpham, code_cart, soluongmua) 
-                VALUES('$id_sanpham','$code_order','$soluong')";
-                mysqli_query($conn, $insert_order_details);
+            if(isset($_SESSION['cart'])){
+                foreach($_SESSION['cart'] as $key => $value){
+                    $id_sanpham = $value['id'];
+                    $soluong = $value['soluong'];
+                    $insert_order_details = "INSERT INTO tbl_cart_details(id_sanpham, code_cart, soluongmua) 
+                    VALUES('$id_sanpham','$code_order','$soluong')";
+                    mysqli_query($conn, $insert_order_details);
+                }
             }
             unset($_SESSION['cart']);
             header('Location:../../index.php?quanly=camon');
@@ -70,7 +70,6 @@
         $vnp_BankCode = 'NCB';
         $vnp_IpAddr = $_SERVER['REMOTE_ADDR'];
         
-        // VNPAY cần format YmdHis (đầy đủ ngày giờ) cho biến expire
         $vnp_ExpireDate = isset($expire) ? $expire : date('YmdHis',strtotime('+15 minutes'));
 
         $inputData = array(
@@ -122,19 +121,21 @@
         if(isset($_POST['redirect'])){
             $_SESSION['code_cart'] = $code_order;
             
-            // Thay NOW() bằng biến $cart_date
+            // Insert cho VNPAY cũng dùng NOW()
             $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
-            VALUES('$id_khachhang','$code_order','1','$cart_date','$cart_payment','$id_shipping')";
+            VALUES('$id_khachhang','$code_order','1',NOW(),'$cart_payment','$id_shipping')";
             
             $cart_query = mysqli_query($conn, $insert_cart);
 
             if($cart_query){
-                foreach($_SESSION['cart'] as $key => $value){
-                    $id_sanpham = $value['id'];
-                    $soluong = $value['soluong'];
-                    $insert_order_details = "INSERT INTO tbl_cart_details(id_sanpham, code_cart, soluongmua) 
-                    VALUES('$id_sanpham','$code_order','$soluong')";
-                    mysqli_query($conn, $insert_order_details);
+                if(isset($_SESSION['cart'])){
+                    foreach($_SESSION['cart'] as $key => $value){
+                        $id_sanpham = $value['id'];
+                        $soluong = $value['soluong'];
+                        $insert_order_details = "INSERT INTO tbl_cart_details(id_sanpham, code_cart, soluongmua) 
+                        VALUES('$id_sanpham','$code_order','$soluong')";
+                        mysqli_query($conn, $insert_order_details);
+                    }
                 }
                 header('Location: ' . $vnp_Url);
                 die();
