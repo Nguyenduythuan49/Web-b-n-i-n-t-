@@ -4,7 +4,6 @@
     require_once('config_vnpay.php');
 
     // KIỂM TRA ĐĂNG NHẬP
-    // Nếu chưa đăng nhập hoặc mất session thì dừng lại ngay để tránh lỗi Fatal Error
     if(!isset($_SESSION['id_khachhang'])){
         echo "<script>alert('Vui lòng đăng nhập lại để thanh toán!'); window.location.href='../../index.php?quanly=dangnhap';</script>";
         exit();
@@ -14,8 +13,9 @@
     $code_order = rand(0,9999);
     $cart_payment = $_POST['payment'];
     
-    // SỬA LỖI THỜI GIAN: Dùng $date_order cho thống nhất
-    $date_order = date('Y-m-d H:i:s');
+    // --- SỬA LỖI DATA TRUNCATED Ở ĐÂY ---
+    // Đổi format từ 'Y-m-d H:i:s' thành 'Y-m-d' để khớp với cột DATE trong database
+    $date_order = date('Y-m-d'); 
     
     // Lấy id thông tin vận chuyển
     $id_dangky = $_SESSION['id_khachhang'];
@@ -25,7 +25,7 @@
         $row_get_vanchuyen = mysqli_fetch_array($sql_get_vanchuyen);
         $id_shipping = $row_get_vanchuyen['id_shipping'];
     } else {
-        $id_shipping = 0; // Xử lý trường hợp chưa có địa chỉ shipping
+        $id_shipping = 0;
     }
 
     $tongtien = 0;
@@ -36,17 +36,16 @@
         }
     }
 
-    // --- TRƯỜNG HỢP 1: THANH TOÁN TIỀN MẶT / CHUYỂN KHOẢN ---
+    // --- THANH TOÁN TIỀN MẶT / CHUYỂN KHOẢN ---
     if($cart_payment == 'tienmat' || $cart_payment == 'chuyenkhoan'){
-        // Thêm đơn hàng vào bảng tbl_cart
-        // Đã sửa biến $now thành $date_order
+        // Insert đơn hàng
         $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
         VALUES('$id_khachhang','$code_order',1,'$date_order','$cart_payment','$id_shipping')";
         
         $cart_query = mysqli_query($conn, $insert_cart);
 
         if($cart_query){
-            // Thêm đơn hàng chi tiết
+            // Insert chi tiết đơn hàng
             foreach($_SESSION['cart'] as $key => $value){
                 $id_sanpham = $value['id'];
                 $soluong = $value['soluong'];
@@ -57,10 +56,10 @@
             
             unset($_SESSION['cart']);
             header('Location:../../index.php?quanly=camon');
-            exit(); // Dừng code sau khi chuyển trang
+            exit();
         }
 
-    // --- TRƯỜNG HỢP 2: THANH TOÁN VNPAY ---
+    // --- THANH TOÁN VNPAY ---
     } elseif($cart_payment == 'vnpay'){
         
         $vnp_TxnRef = $code_order; 
@@ -71,8 +70,8 @@
         $vnp_BankCode = 'NCB';
         $vnp_IpAddr = $_SERVER['REMOTE_ADDR'];
         
-        // Kiểm tra biến expire
-        $vnp_ExpireDate = isset($expire) ? $expire : date('YmdHis',strtotime('+15 minutes',strtotime($date_order)));
+        // Thời gian hết hạn thanh toán (dùng format đầy đủ cho VNPAY yêu cầu)
+        $vnp_ExpireDate = isset($expire) ? $expire : date('YmdHis',strtotime('+15 minutes'));
 
         $inputData = array(
             "vnp_Version" => "2.1.0",
@@ -123,7 +122,7 @@
         if(isset($_POST['redirect'])){
             $_SESSION['code_cart'] = $code_order;
             
-            // Insert dữ liệu đơn hàng trước khi chuyển qua VNPAY
+            // Insert đơn hàng VNPAY (Dùng $date_order chỉ có ngày)
             $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
             VALUES('$id_khachhang','$code_order','1','$date_order','$cart_payment','$id_shipping')";
             
