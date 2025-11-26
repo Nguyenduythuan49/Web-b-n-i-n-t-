@@ -22,7 +22,7 @@
         $row_get_vanchuyen = mysqli_fetch_array($sql_get_vanchuyen);
         $id_shipping = $row_get_vanchuyen['id_shipping'];
     } else {
-        $id_shipping = 0; 
+        $id_shipping = 0;
     }
 
     // 3. TÍNH TỔNG TIỀN
@@ -37,8 +37,11 @@
     // --- TRƯỜNG HỢP 1: THANH TOÁN TIỀN MẶT / CHUYỂN KHOẢN ---
     if($cart_payment == 'tienmat' || $cart_payment == 'chuyenkhoan'){
         
-        $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
-        VALUES('$id_khachhang','$code_order',1,NOW(),'$cart_payment','$id_shipping')";
+        // SỬA LỖI Ở ĐÂY:
+        // Tôi đã XÓA cột 'cart_date' và giá trị NOW() đi.
+        // Database sẽ tự động điền thời gian hiện tại vào nhờ current_timestamp()
+        $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_payment, cart_shipping) 
+        VALUES('$id_khachhang','$code_order',1,'$cart_payment','$id_shipping')";
         
         $cart_query = mysqli_query($conn, $insert_cart);
 
@@ -119,9 +122,9 @@
         if(isset($_POST['redirect'])){
             $_SESSION['code_cart'] = $code_order;
             
-            // Dòng này (dòng 132 cũ) sẽ chạy tốt nếu bạn đã chạy lệnh SQL ở Bước 1
-            $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
-            VALUES('$id_khachhang','$code_order','1',NOW(),'$cart_payment','$id_shipping')";
+            
+            $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_payment, cart_shipping) 
+            VALUES('$id_khachhang','$code_order',1,'$cart_payment','$id_shipping')";
             
             $cart_query = mysqli_query($conn, $insert_cart);
 
