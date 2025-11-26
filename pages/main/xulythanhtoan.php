@@ -13,6 +13,10 @@
     $code_order = rand(0,9999);
     $cart_payment = $_POST['payment'];
     
+    // --- KHẮC PHỤC LỖI OUT OF RANGE ---
+    // Chỉ lấy Năm-Tháng-Ngày để phù hợp với cột DATE trong database
+    $cart_date = date('Y-m-d');
+    
     // 2. LẤY THÔNG TIN VẬN CHUYỂN
     $id_dangky = $_SESSION['id_khachhang'];
     $sql_get_vanchuyen = mysqli_query($conn, "SELECT * FROM tbl_shipping WHERE id_dangky='$id_dangky' LIMIT 1");
@@ -36,9 +40,9 @@
     // --- TRƯỜNG HỢP 1: THANH TOÁN TIỀN MẶT / CHUYỂN KHOẢN ---
     if($cart_payment == 'tienmat' || $cart_payment == 'chuyenkhoan'){
         
-        // SỬA LỖI: Dùng hàm NOW() của SQL thay vì biến PHP để tránh lỗi định dạng ngày
+        // Thay NOW() bằng biến $cart_date đã định dạng chuẩn
         $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
-        VALUES('$id_khachhang','$code_order',1, NOW(),'$cart_payment','$id_shipping')";
+        VALUES('$id_khachhang','$code_order',1,'$cart_date','$cart_payment','$id_shipping')";
         
         $cart_query = mysqli_query($conn, $insert_cart);
 
@@ -66,7 +70,7 @@
         $vnp_BankCode = 'NCB';
         $vnp_IpAddr = $_SERVER['REMOTE_ADDR'];
         
-        // VNPAY yêu cầu định dạng ngày giờ liền mạch (YmdHis)
+        // VNPAY cần format YmdHis (đầy đủ ngày giờ) cho biến expire
         $vnp_ExpireDate = isset($expire) ? $expire : date('YmdHis',strtotime('+15 minutes'));
 
         $inputData = array(
@@ -118,9 +122,9 @@
         if(isset($_POST['redirect'])){
             $_SESSION['code_cart'] = $code_order;
             
-            // SỬA LỖI: Dùng hàm NOW() ở đây nữa
+            // Thay NOW() bằng biến $cart_date
             $insert_cart = "INSERT INTO tbl_cart(id_khachhang, code_cart, cart_status, cart_date, cart_payment, cart_shipping) 
-            VALUES('$id_khachhang','$code_order','1', NOW(),'$cart_payment','$id_shipping')";
+            VALUES('$id_khachhang','$code_order','1','$cart_date','$cart_payment','$id_shipping')";
             
             $cart_query = mysqli_query($conn, $insert_cart);
 
