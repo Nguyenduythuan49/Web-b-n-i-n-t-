@@ -1,180 +1,273 @@
-<h3>Lịch sử đơn hàng</h3>
-<?php
-    // BẢO MẬT: Đảm bảo người dùng đã đăng nhập và ép kiểu ID thành số nguyên
+<style>
+    /* Tổng thể container */
+    .history-wrapper {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+    }
+
+    .history-title {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #007bff;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    /* Style cho bảng */
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+        font-size: 14px;
+    }
+
+    .custom-table thead th {
+        background-color: #007bff; /* Màu xanh chủ đạo */
+        color: white;
+        text-align: left;
+        padding: 12px 10px;
+        border: none;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .custom-table tbody td {
+        padding: 12px 10px;
+        border-bottom: 1px solid #eee;
+        color: #444;
+        vertical-align: middle;
+    }
+
+    .custom-table tbody tr:hover {
+        background-color: #f8f9fa; /* Hiệu ứng hover dòng */
+    }
+
+    /* Style cho nhãn trạng thái */
+    .badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        display: inline-block;
+    }
+    .badge-new {
+        background-color: #e3f2fd;
+        color: #0d47a1;
+        border: 1px solid #90caf9;
+    }
+    .badge-done {
+        background-color: #e8f5e9;
+        color: #1b5e20;
+        border: 1px solid #a5d6a7;
+    }
+
+    /* Style cho nút bấm/link */
+    .btn-action {
+        text-decoration: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+        transition: 0.2s;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .btn-view {
+        color: #007bff;
+        border: 1px solid #007bff;
+    }
+    .btn-view:hover {
+        background-color: #007bff;
+        color: white;
+    }
+    .btn-print {
+        color: #6c757d;
+        border: 1px solid #6c757d;
+    }
+    .btn-print:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    /* Responsive cho mobile */
+    .table-responsive {
+        overflow-x: auto;
+    }
+</style>
+
+<div class="history-wrapper">
+    <h3 class="history-title">Lịch sử đơn hàng</h3>
+    <?php
+    // BẢO MẬT: Đảm bảo người dùng đã đăng nhập
     if (!isset($_SESSION['id_khachhang'])) {
         echo "<p>Vui lòng đăng nhập để xem lịch sử đơn hàng.</p>";
-        // Dừng tệp nếu chưa đăng nhập
         return; 
     }
     $id_khachhang = (int)$_SESSION['id_khachhang'];
 
-    $sql_lietke_dh = "SELECT * FROM tbl_cart, tbl_dangky 
-                      WHERE tbl_cart.id_khachhang = tbl_dangky.id_dangky 
-                      AND tbl_cart.id_khachhang = $id_khachhang 
+    // --- SỬA CÂU TRUY VẤN (QUAN TRỌNG) ---
+    // JOIN thêm bảng tbl_shipping dựa trên id được lưu trong đơn hàng (cart_shipping)
+    // Dùng LEFT JOIN tbl_dangky để phòng hờ trường hợp cần lấy thông tin gốc
+    $sql_lietke_dh = "SELECT * FROM tbl_cart 
+                      LEFT JOIN tbl_shipping ON tbl_cart.cart_shipping = tbl_shipping.id_shipping
+                      LEFT JOIN tbl_dangky ON tbl_cart.id_khachhang = tbl_dangky.id_dangky
+                      WHERE tbl_cart.id_khachhang = '$id_khachhang' 
                       ORDER BY tbl_cart.id_cart DESC";
     
     $query_lietke_dh = mysqli_query($conn, $sql_lietke_dh);
-?>
-<table style="width:100%; border-collapse: collapse;" border="1">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Mã đơn hàng</th>
-            <th>Tên khách hàng</th>
-            <th>Số điện thoại</th>
-            <th>Địa chỉ</th>
-            <th>Email</th>
-            <th>Tình Trạng</th>
-            <th>Quản lý</th>
-            <th>In </th>
-            <th>Hình thức thanh toán </th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php
-        $i = 0;
-        // SỬA LOGIC: Kiểm tra xem có đơn hàng nào không
-        if (mysqli_num_rows($query_lietke_dh) > 0) {
-            while($row = mysqli_fetch_array($query_lietke_dh)){
-                $i++;
-        ?>
-        <tr>
-            <td><?php echo $i ?></td>
-            <td><?php echo htmlspecialchars($row['code_cart']); ?></td>
-            <td><?php echo htmlspecialchars($row['tenkhachhang']); ?></td>
-            <td><?php echo htmlspecialchars($row['sodienthoai']); ?></td>
-            <td><?php echo htmlspecialchars($row['diachi']); ?></td>
-            <td><?php echo htmlspecialchars($row['email']); ?></td>
-            <td>
-                <?php 
-                if($row['cart_status'] == 1){
-                    // Không nên để link xử lý của admin ở trang khách hàng
-                    echo 'Đơn hàng mới'; 
-                } else {
-                    echo 'Đã xử lý';
-                } 
-                ?>
-            </td>
-            <td> 
-                <a href="index.php?quanly=xemdonhang&code=<?php echo htmlspecialchars($row['code_cart']); ?>">Xem đơn hàng</a> 
-            </td>
-            <td>
-                <a href="main/indonhang.php?code=<?php echo htmlspecialchars($row['code_cart']); ?>" target="_blank">In đơn hàng</a>
-            </td>
-            <td>
+    ?>
+    
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Mã đơn</th>
+                    <th>Ngày đặt</th> 
+                    <th>Người nhận</th> <th>SĐT nhận</th>
+                    <th>Địa chỉ giao hàng</th>
+                    <th>Tình Trạng</th>
+                    <th>Thao tác</th>
+                    <th>Thanh toán</th>
+                </tr>
+            </thead>
+            <tbody>
                 <?php
-                $payment_method = htmlspecialchars($row['cart_payment']);
-                if($payment_method == 'vnpay' || $payment_method == 'momo'){
+                $i = 0;
+                if (mysqli_num_rows($query_lietke_dh) > 0) {
+                    while($row = mysqli_fetch_array($query_lietke_dh)){
+                        $i++;
+                        
+                        // --- XỬ LÝ LOGIC HIỂN THỊ ---
+                        // Ưu tiên lấy thông tin từ bảng shipping (name, phone, address)
+                        // Nếu không có (đơn cũ quá chưa có id shipping) thì lấy từ bảng đăng ký (tenkhachhang...)
+                        
+                        $ten_nguoinhan = !empty($row['name']) ? $row['name'] : $row['tenkhachhang'];
+                        $sdt_nguoinhan = !empty($row['phone']) ? $row['phone'] : $row['sodienthoai'];
+                        $diachi_nguoinhan = !empty($row['address']) ? $row['address'] : $row['diachi'];
                 ?>
-                    <a href="index.php?quanly=lichsudonhang&congthanhtoan=<?php echo $payment_method; ?>&code_cart=<?php echo htmlspecialchars($row['code_cart']); ?>">
-                        <?php echo $payment_method; ?>
-                    </a>
+                <tr>
+                    <td><?php echo $i ?></td>
+                    <td><b><?php echo htmlspecialchars($row['code_cart']); ?></b></td>
+                    <td><?php echo isset($row['cart_date']) ? htmlspecialchars($row['cart_date']) : 'N/A'; ?></td>
+                    
+                    <td><?php echo htmlspecialchars($ten_nguoinhan); ?></td>
+                    <td><?php echo htmlspecialchars($sdt_nguoinhan); ?></td>
+                    <td style="max-width: 250px;"><?php echo htmlspecialchars($diachi_nguoinhan); ?></td>
+                    
+                    <td>
+                        <?php 
+                        if($row['cart_status'] == 1){
+                            echo '<span class="badge badge-new">Đơn mới</span>'; 
+                        } else {
+                            echo '<span class="badge badge-done">Đã xử lý</span>';
+                        } 
+                        ?>
+                    </td>
+                    <td> 
+                        <a href="index.php?quanly=xemdonhang&code=<?php echo htmlspecialchars($row['code_cart']); ?>" class="btn-action btn-view">Xem</a> 
+                        <a href="main/indonhang.php?code=<?php echo htmlspecialchars($row['code_cart']); ?>" target="_blank" class="btn-action btn-print">In</a>
+                    </td>
+                    <td>
+                        <?php
+                        $payment_method = htmlspecialchars($row['cart_payment']);
+                        if($payment_method == 'vnpay' || $payment_method == 'momo'){
+                        ?>
+                            <a href="index.php?quanly=lichsudonhang&congthanhtoan=<?php echo $payment_method; ?>&code_cart=<?php echo htmlspecialchars($row['code_cart']); ?>" style="color: #E91E63; font-weight:bold;">
+                                <?php echo strtoupper($payment_method); ?>
+                            </a>
+                        <?php
+                        } else {
+                            echo ucfirst($payment_method); // Viết hoa chữ cái đầu
+                        }
+                        ?>
+                    </td>
+                </tr>
                 <?php
+                    } 
                 } else {
-                    echo $payment_method; // Ví dụ: 'tienmat'
+                    echo '<tr><td colspan="9" style="text-align:center; padding: 20px;">Bạn chưa có đơn hàng nào.</td></tr>';
                 }
                 ?>
-            </td>
-        </tr>
-        <?php
-            } // Kết thúc while
-        } else {
-            // Hiển thị thông báo nếu không có đơn hàng
-            echo '<tr><td colspan="10" style="text-align:center;">Bạn chưa có đơn hàng nào.</td></tr>';
-        }
-        ?>
-    </tbody>
-</table>
+            </tbody>
+        </table>
+    </div>
 
-<hr style="margin-top: 20px;">
-
-<?php
-// --- KHỐI HIỂN THỊ CHI TIẾT THANH TOÁN (ĐÃ SỬA LỖI) ---
-if(isset($_GET['congthanhtoan'])){
-    $congthanhtoan = $_GET['congthanhtoan'];
-    
-    // BẢO MẬT (SQL INJECTION): Làm sạch biến code_cart trước khi dùng
-    $code_cart_safe = mysqli_real_escape_string($conn, $_GET['code_cart']);
-    
-    echo '<h4>Chi tiết thanh toán qua cổng thanh toán: '.htmlspecialchars($congthanhtoan).'</h4>';
-    
-    // --- Xử lý MoMo ---
-    if($congthanhtoan == 'momo'){
+    <?php
+    if(isset($_GET['congthanhtoan'])){
+    ?>
+    <hr style="border-top: 1px dashed #ccc; margin: 30px 0;">
+    <?php
+        $congthanhtoan = $_GET['congthanhtoan'];
+        $code_cart_safe = mysqli_real_escape_string($conn, $_GET['code_cart']);
         
-        $sql_momo = mysqli_query($conn, "SELECT * FROM tbl_momo WHERE code_cart='".$code_cart_safe."' LIMIT 1");
+        echo '<h4 style="color:#007bff;">Chi tiết giao dịch: '.strtoupper(htmlspecialchars($congthanhtoan)).'</h4>';
         
-        // SỬA LỖI (NULL): Kiểm tra xem $sql_momo có kết quả không
-        if ($sql_momo && mysqli_num_rows($sql_momo) > 0) {
-            $row_momo = mysqli_fetch_array($sql_momo);
+        // --- Xử lý hiển thị bảng con (dùng chung class custom-table) ---
+        
+        if($congthanhtoan == 'momo'){
+            $sql_momo = mysqli_query($conn, "SELECT * FROM tbl_momo WHERE code_cart='".$code_cart_safe."' LIMIT 1");
+            if ($sql_momo && mysqli_num_rows($sql_momo) > 0) {
+                $row_momo = mysqli_fetch_array($sql_momo);
         ?>
-            <table class="table table-bordered" style="width:100%; border-collapse: collapse;" border="1">
-                <thead>
-                    <tr>
-                        <th>Partner_code</th>
-                        <th>Order_id</th>
-                        <th>Amount</th>
-                        <th>Order_info</th>
-                        <th>Order_Type</th>
-                        <th>Trans_id</th>
-                        <th>Pay_type</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><?php echo htmlspecialchars($row_momo['partner_code']); ?></td>
-                        <td><?php echo htmlspecialchars($row_momo['order_id']); ?></td>
-                        <td><?php echo number_format($row_momo['amount'], 0, ',', '.').' VNĐ'; ?></td>
-                        <td><?php echo htmlspecialchars($row_momo['order_info']); ?></td>
-                        <td><?php echo htmlspecialchars($row_momo['order_type']); ?></td>
-                        <td><?php echo htmlspecialchars($row_momo['trans_id']); ?></td>
-                        <td><?php echo htmlspecialchars($row_momo['pay_type']); ?></td>
-                    </tr>
-                </tbody>
-            </table>
+                <div class="table-responsive">
+                <table class="custom-table" style="background: #fafafa; border: 1px solid #eee;">
+                    <thead>
+                        <tr>
+                            <th>Partner Code</th>
+                            <th>Mã GD</th>
+                            <th>Số tiền</th>
+                            <th>Nội dung</th>
+                            <th>Loại GD</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><?php echo htmlspecialchars($row_momo['partner_code']); ?></td>
+                            <td><?php echo htmlspecialchars($row_momo['trans_id']); ?></td>
+                            <td style="color:red; font-weight:bold;"><?php echo number_format($row_momo['amount'], 0, ',', '.').' đ'; ?></td>
+                            <td><?php echo htmlspecialchars($row_momo['order_info']); ?></td>
+                            <td><?php echo htmlspecialchars($row_momo['pay_type']); ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
         <?php
-        } else {
-            // Hiển thị nếu không tìm thấy
-            echo '<p>Không tìm thấy chi tiết giao dịch MoMo cho mã đơn hàng: '.htmlspecialchars($_GET['code_cart']).'</p>';
-        }
-
-    // --- Xử lý VNPAY ---
-    } elseif($congthanhtoan == 'vnpay'){
-        
-        $sql_vnpay = mysqli_query($conn, "SELECT * FROM tbl_vnpay WHERE code_cart='".$code_cart_safe."' LIMIT 1");
-        
-        // SỬA LỖI (NULL): Kiểm tra xem $sql_vnpay có kết quả không
-        if ($sql_vnpay && mysqli_num_rows($sql_vnpay) > 0) {
-            $row_vnpay = mysqli_fetch_array($sql_vnpay);
+            }
+        } elseif($congthanhtoan == 'vnpay'){
+            $sql_vnpay = mysqli_query($conn, "SELECT * FROM tbl_vnpay WHERE code_cart='".$code_cart_safe."' LIMIT 1");
+            if ($sql_vnpay && mysqli_num_rows($sql_vnpay) > 0) {
+                $row_vnpay = mysqli_fetch_array($sql_vnpay);
         ?>
-            <table class="table table-bordered" style="width:100%; border-collapse: collapse;" border="1">
-                <thead>
-                    <tr>
-                        <th>vnp_amount</th>
-                        <th>vnp_bankcode</th>
-                        <th>vnp_banktranno</th>
-                        <th>vnp_orderinfo</th>
-                        <th>vnp_paydate</th>
-                        <th>vnp_tmncode</th>
-                        <th>vnp_transactionno</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><?php echo number_format($row_vnpay['vnp_amount'] / 100, 0, ',', '.').' VNĐ'; ?></td>
-                        <td><?php echo htmlspecialchars($row_vnpay['vnp_bankcode']); ?></td>
-                        <td><?php echo htmlspecialchars($row_vnpay['vnp_banktranno']); ?></td>
-                        <td><?php echo htmlspecialchars($row_vnpay['vnp_orderinfo']); ?></td>
-                        <td><?php echo htmlspecialchars($row_vnpay['vnp_paydate']); ?></td>
-                        <td><?php echo htmlspecialchars($row_vnpay['vnp_tmncode']); ?></td>
-                        <td><?php echo htmlspecialchars($row_vnpay['vnp_transactionno']); ?></td>
-                    </tr>
-                </tbody>
-            </table>
+                <div class="table-responsive">
+                <table class="custom-table" style="background: #fafafa; border: 1px solid #eee;">
+                    <thead>
+                        <tr>
+                            <th>Mã NH</th>
+                            <th>Số tiền</th>
+                            <th>Nội dung</th>
+                            <th>Ngày thanh toán</th>
+                            <th>Mã GD VNPAY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><?php echo htmlspecialchars($row_vnpay['vnp_bankcode']); ?></td>
+                            <td style="color:red; font-weight:bold;"><?php echo number_format($row_vnpay['vnp_amount'] / 100, 0, ',', '.').' đ'; ?></td>
+                            <td><?php echo htmlspecialchars($row_vnpay['vnp_orderinfo']); ?></td>
+                            <td><?php echo htmlspecialchars($row_vnpay['vnp_paydate']); ?></td>
+                            <td><?php echo htmlspecialchars($row_vnpay['vnp_transactionno']); ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
         <?php
-        } else {
-            // Hiển thị nếu không tìm thấy
-            echo '<p>Không tìm thấy chi tiết giao dịch VNPAY cho mã đơn hàng: '.htmlspecialchars($_GET['code_cart']).'</p>';
+            }
         }
     }
-}
-?>
+    ?>
+</div>

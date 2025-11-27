@@ -1,5 +1,5 @@
 <?php 
-$conn = "localhost:3307";//Lỗi do thiếu cổng 3307 -> đúng là localhost:cổng
+$conn = "127.0.0.1:3307";//Lỗi do thiếu cổng 3307 -> đúng là localhost:cổng
 $username   = "root";
 $password   = "0702479538";
 $dbname     = "web_phukien";

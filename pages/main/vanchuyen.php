@@ -1,32 +1,29 @@
 <?php
-    // 1. KHỞI TẠO VÀ KẾT NỐI
+    // SỬA LỖI 1: Kiểm tra kết nối CSDL
+    // Nếu chưa có biến $conn (nghĩa là chưa include config từ index), thì mới include.
+    // Đường dẫn tính từ thư mục gốc (nơi chứa file index.php)
+    if (!isset($conn)) {
+        if(file_exists('admincp/config/config.php')){
+            include('admincp/config/config.php');
+        } else {
+            // Trường hợp dự phòng nếu cấu trúc thư mục khác
+            include('../../admincp/config/config.php'); 
+        }
+    }
+
     if (session_status() == PHP_SESSION_NONE) {
         session_start();
     }
-
-    $projectRoot = dirname(__DIR__, 2); 
-    $configPath = $projectRoot . '/admincp/config/config.php';
-
-    if (!file_exists($configPath)) {
-        die("Không tìm thấy file cấu hình: {$configPath}");
-    }
-
-    include_once $configPath;
 ?>
 
-<!-- BẮT ĐẦU GIAO DIỆN -->
 <div class="container py-4">
-    
-    <!-- Thanh tiến trình (Arrow Steps) -->
     <div class="arrow-steps clearfix mb-4">
         <div class="step done"> <span><a href="index.php?quanly=giohang">Giỏ hàng</a></span> </div>
         <div class="step current"> <span><a href="index.php?quanly=vanchuyen">Vận chuyển</a></span> </div>
         <div class="step"> <span><a href="index.php?quanly=thongtinthanhtoan">Thanh toán</a></span> </div>
-        <!-- <div class="step"> <span><a href="index.php?quanly=donhangdadat">Lịch sử đơn hàng</a></span> </div> -->
     </div>
 
     <?php
-        // Lấy id khách hàng
         if (isset($_SESSION['id_khachhang'])) {
             $id_dangky = $_SESSION['id_khachhang'];
         } else {
@@ -34,35 +31,28 @@
             exit;
         }
 
-        // --- XỬ LÝ PHP: THÊM / CẬP NHẬT ---
+        // --- XỬ LÝ: LUÔN LUÔN INSERT (THÊM MỚI) ---
         if (isset($_POST['themvanchuyen']) || isset($_POST['capnhatvanchuyen'])) {
-            $name = isset($_POST['name']) ? mysqli_real_escape_string($conn, trim($_POST['name'])) : '';
-            $phone = isset($_POST['phone']) ? mysqli_real_escape_string($conn, trim($_POST['phone'])) : '';
-            $address = isset($_POST['address']) ? mysqli_real_escape_string($conn, trim($_POST['address'])) : '';
-            $note = isset($_POST['note']) ? mysqli_real_escape_string($conn, trim($_POST['note'])) : '';
+            $name = mysqli_real_escape_string($conn, $_POST['name']);
+            $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+            $address = mysqli_real_escape_string($conn, $_POST['address']);
+            $note = mysqli_real_escape_string($conn, $_POST['note']);
 
-            $check_shipping = mysqli_query($conn, "SELECT * FROM tbl_shipping WHERE id_dangky='$id_dangky' LIMIT 1");
-
-            if (mysqli_num_rows($check_shipping) > 0) {
-                // Cập nhật
-                $sql_update_vanchuyen = "UPDATE tbl_shipping SET name='$name', phone='$phone', address='$address', note='$note' WHERE id_dangky='$id_dangky'";
-                mysqli_query($conn, $sql_update_vanchuyen);
-                echo '<script>alert("Cập nhật thông tin vận chuyển thành công!"); window.location="index.php?quanly=thongtinthanhtoan";</script>';
-            } else {
-                // Thêm mới
-                $sql_insert_vanchuyen = "INSERT INTO tbl_shipping(name, phone, address, note, id_dangky) VALUES('$name','$phone','$address','$note','$id_dangky')";
-                mysqli_query($conn, $sql_insert_vanchuyen);
-                echo '<script>alert("Thêm thông tin vận chuyển thành công!"); window.location="index.php?quanly=thongtinthanhtoan";</script>';
+            // Luôn dùng INSERT để tạo ID shipping mới
+            $sql_insert_vanchuyen = "INSERT INTO tbl_shipping(name, phone, address, note, id_dangky) VALUES('$name','$phone','$address','$note','$id_dangky')";
+            $query_insert = mysqli_query($conn, $sql_insert_vanchuyen);
+            
+            if($query_insert){
+                echo '<script>window.location="index.php?quanly=thongtinthanhtoan";</script>';
             }
         }
 
-        // Lấy dữ liệu cũ để điền vào form
-        $sql_get_vanchuyen = mysqli_query($conn, "SELECT * FROM tbl_shipping WHERE id_dangky='$id_dangky' LIMIT 1");
-        $count = mysqli_num_rows($sql_get_vanchuyen);
+        // Lấy thông tin mới nhất để điền vào form
+        $sql_get_vanchuyen = mysqli_query($conn, "SELECT * FROM tbl_shipping WHERE id_dangky='$id_dangky' ORDER BY id_shipping DESC LIMIT 1");
         
         $name = ''; $phone = ''; $address = ''; $note = '';
-        if ($count > 0) {
-            $row_get = mysqli_fetch_assoc($sql_get_vanchuyen);
+        if ($sql_get_vanchuyen && mysqli_num_rows($sql_get_vanchuyen) > 0) {
+            $row_get = mysqli_fetch_array($sql_get_vanchuyen);
             $name = $row_get['name'];
             $phone = $row_get['phone'];
             $address = $row_get['address'];
@@ -70,10 +60,7 @@
         }
     ?>
 
-    <!-- CHIA CỘT: TRÁI (FORM) - PHẢI (GIỎ HÀNG) -->
     <div class="row">
-        
-        <!-- CỘT TRÁI: FORM NHẬP LIỆU -->
         <div class="col-md-7 mb-4">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white">
@@ -83,54 +70,29 @@
                     <form action="" autocomplete="off" method="POST">
                         <div class="form-group">
                             <label class="font-weight-bold">Họ và tên</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fa fa-user"></i></span>
-                                </div>
-                                <input type="text" name="name" class="form-control" value="<?php echo htmlspecialchars($name); ?>" placeholder="Nguyễn Văn A" required>
-                            </div>
+                            <input type="text" name="name" class="form-control" value="<?php echo htmlspecialchars($name); ?>" required>
                         </div>
-                        
                         <div class="form-group">
                             <label class="font-weight-bold">Số điện thoại</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fa fa-phone"></i></span>
-                                </div>
-                                <input type="text" name="phone" class="form-control" value="<?php echo htmlspecialchars($phone); ?>" placeholder="09xxxxxxxxx" required>
-                            </div>
+                            <input type="text" name="phone" class="form-control" value="<?php echo htmlspecialchars($phone); ?>" required>
                         </div>
-
                         <div class="form-group">
                             <label class="font-weight-bold">Địa chỉ nhận hàng</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fa fa-map-marker-alt"></i></span>
-                                </div>
-                                <input type="text" name="address" class="form-control" value="<?php echo htmlspecialchars($address); ?>" placeholder="Số nhà, tên đường, phường xã..." required>
-                            </div>
+                            <input type="text" name="address" class="form-control" value="<?php echo htmlspecialchars($address); ?>" required>
                         </div>
-
                         <div class="form-group">
-                            <label class="font-weight-bold">Ghi chú (Tùy chọn)</label>
-                            <textarea name="note" class="form-control" rows="3" placeholder="Ví dụ: Giao giờ hành chính..."><?php echo htmlspecialchars($note); ?></textarea>
+                            <label class="font-weight-bold">Ghi chú</label>
+                            <textarea name="note" class="form-control" rows="3"><?php echo htmlspecialchars($note); ?></textarea>
                         </div>
 
-                        <?php if ($name == '' && $phone == '') { ?>
-                            <button type="submit" name="themvanchuyen" class="btn btn-primary btn-block py-2 font-weight-bold">
-                                <i class="fa-solid fa-check"></i> Xác nhận & Giao đến địa chỉ này
-                            </button>
-                        <?php } else { ?>
-                            <button type="submit" name="capnhatvanchuyen" class="btn btn-success btn-block py-2 font-weight-bold">
-                                <i class="fa-solid fa-pen-to-square"></i> Cập nhật & Giao đến địa chỉ này
-                            </button>
-                        <?php } ?>
+                        <button type="submit" name="themvanchuyen" class="btn btn-primary btn-block py-2 font-weight-bold">
+                            <i class="fa-solid fa-check"></i> Xác nhận & Giao đến địa chỉ này
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- CỘT PHẢI: TÓM TẮT GIỎ HÀNG -->
         <div class="col-md-5">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-light">
@@ -142,7 +104,7 @@
                             <thead class="text-muted" style="font-size: 14px;">
                                 <tr>
                                     <th>Sản phẩm</th>
-                                    <th>Số Lượng</th>
+                                    <th>SL</th>
                                     <th>Thành tiền</th>
                                 </tr>
                             </thead>
@@ -185,11 +147,7 @@
                         </table>
                     </div>
                 </div>
-                <div class="card-footer bg-white text-center text-muted" style="font-size: 13px;">
-                    <i class="fa-solid fa-shield-halved"></i> Thông tin được bảo mật tuyệt đối
-                </div>
             </div>
         </div>
-
-    </div> <!-- End Row -->
+    </div>
 </div>
